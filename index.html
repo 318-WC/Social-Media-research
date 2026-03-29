@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>小红书 - 春日生活指南 (修复完整版)</title>
+    <style>
+        :root {
+            --xhs-red: #ff2442;
+            --xhs-bg: #fff;
+            --xhs-gray-bg: #f8f8f8;
+            --xhs-text: #333;
+            --xhs-gray-text: #666;
+            --card-radius: 16px;
+        }
+
+        body { margin: 0; background-color: var(--xhs-bg); font-family: -apple-system, "PingFang SC", "Microsoft YaHei", sans-serif; display: flex; }
+
+        .side-bar {
+            width: 72px; height: 100vh; border-right: 1px solid #eee;
+            display: flex; flex-direction: column; align-items: center;
+            padding-top: 20px; position: fixed; background: #fff; z-index: 100;
+        }
+        .nav-item { margin-bottom: 30px; cursor: pointer; text-align: center; color: var(--xhs-text); font-size: 12px; transition: color 0.3s; }
+        .nav-item:hover { color: var(--xhs-red); }
+
+        .main-content { margin-left: 72px; flex: 1; padding: 0 40px; }
+        .header { height: 80px; display: flex; align-items: center; max-width: 1600px; margin: 0 auto; position: sticky; top: 0; background: #fff; z-index: 50; }
+        .search-input { background: var(--xhs-gray-bg); border: 2px solid transparent; border-radius: 24px; padding: 12px 28px; width: 450px; color: #333; font-size: 15px; outline: none; transition: all 0.3s; }
+        .search-input:focus { background: #fff; border-color: #eee; box-shadow: 0 2px 10px rgba(0,0,0,0.05); }
+
+        .explore-container { 
+            max-width: 1600px; 
+            margin: 10px auto; 
+            column-count: 5; 
+            column-gap: 20px; 
+        }
+
+        @media (max-width: 1400px) { .explore-container { column-count: 4; } }
+        @media (max-width: 1100px) { .explore-container { column-count: 3; } }
+        @media (max-width: 800px) { .explore-container { column-count: 2; } }
+
+        .note-card {
+            break-inside: avoid; margin-bottom: 20px;
+            background: #fff; border-radius: var(--card-radius);
+            overflow: hidden; border: 1px solid #f2f2f2;
+            transition: all 0.3s; cursor: pointer;
+        }
+        .note-card:hover { transform: translateY(-6px); box-shadow: 0 12px 24px rgba(0,0,0,0.12); }
+        .note-image { width: 100%; display: block; background: #eee; }
+        .note-info { padding: 14px; }
+        .note-title { font-size: 14px; font-weight: 600; margin-bottom: 10px; line-height: 1.5; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; color: #111; }
+        .note-footer { display: flex; justify-content: space-between; align-items: center; font-size: 12px; color: var(--xhs-gray-text); }
+        .author-box { display: flex; align-items: center; gap: 8px; }
+        .author-img { width: 22px; height: 22px; border-radius: 50%; object-fit: cover; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8); display: none;
+            justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; width: 95%; max-width: 1100px; height: 85vh;
+            border-radius: 24px; display: flex; overflow: hidden; position: relative;
+        }
+        .modal-left { flex: 1.4; background: #000; display: flex; align-items: center; justify-content: center; }
+        #modalSingleImage { width: 100%; height: 100%; object-fit: contain; }
+        .modal-right { flex: 1; padding: 35px; overflow-y: auto; display: flex; flex-direction: column; border-left: 1px solid #eee; }
+        .close-btn { position: absolute; top: 20px; right: 25px; font-size: 32px; cursor: pointer; color: #999; z-index: 20; }
+        .modal-author { display: flex; align-items: center; gap: 12px; margin-bottom: 20px; }
+        .modal-author img { width: 42px; height: 42px; border-radius: 50%; }
+        .modal-body { font-size: 16px; line-height: 1.8; color: #333; white-space: pre-line; margin: 15px 0; }
+        .modal-footer-actions { margin-top: auto; display: flex; justify-content: space-between; padding: 20px 0; border-top: 1px solid #eee; }
+        .modal-footer-actions div { display: flex; align-items: center; gap: 6px; font-size: 14px; color: #555; }
+    </style>
+</head>
+<body>
+
+    <div class="side-bar">
+        <div style="background: var(--xhs-red); width: 42px; height: 42px; border-radius: 12px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; margin-bottom: 40px; font-size: 20px;">小</div>
+        <div class="nav-item">🧭<br>发现</div>
+        <div class="nav-item">➕<br>发布</div>
+        <div class="nav-item">👤<br>个人</div>
+    </div>
+
+    <div class="main-content">
+        <div class="header">
+            <input type="text" class="search-input" id="searchInput" placeholder="🔍 搜索攻略、城市或关键词...">
+        </div>
+        <div class="explore-container" id="grid"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <span class="close-btn" id="closeModal">✕</span>
+            <div class="modal-left">
+                <img id="modalSingleImage" src="" alt="笔记大图">
+            </div>
+            <div class="modal-right">
+                <div class="modal-author">
+                    <img id="modalAvatar" src="">
+                    <span id="modalAuthorName" style="font-weight: 600;"></span>
+                </div>
+                <h2 id="modalTitle" style="font-size: 20px; margin: 10px 0;"></h2>
+                <div id="modalBody" class="modal-body"></div>
+                <div class="modal-footer-actions">
+                    <div>❤️ <span id="likeText"></span></div>
+                    <div>📌 <span id="collectText"></span></div>
+                    <div>💬 <span id="commentText"></span></div>
+                    <div>🚀 <span id="shareText"></span></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const posts = [
+            { id: 1, title: "🌸北京春天必去！故宫+胡同+美食一日游攻略🌿", author: "京城探店小能手", avatar: "https://randomuser.me/api/portraits/women/1.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", body: "春天来北京，当然要去故宫！🌸\n故宫的红墙配上春天的花，拍照真的绝了！\n从午门进，一路走到神武门，随手一拍都是大片📸\n中午在附近的胡同里找一家老北京炸酱面，地道又好吃🍜\n下午逛逛什刹海，走走胡同，感受老北京的慢生活～\n晚上再去吃一顿铜锅涮肉，完美收官！🔥\n\n标签： #北京 #北京旅游 #故宫拍照 #春天去哪儿 #北京美食 #周末去哪儿 #胡同生活 #北京攻略", likes: "16,200", collects: "3,200", comments: "450", shares: "1,200" },
+            { id: 2, title: "🎢环球影城一日游！保姆级攻略+拍照机位📷", author: "魔法少女小张", avatar: "https://randomuser.me/api/portraits/women/2.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", body: "北京环球影城真的太好拍了！\n哈利波特园区一定要穿魔法袍，拍照超有氛围感🧙‍♂️\n小黄人乐园色彩超鲜艳，怎么拍都可爱🍌\n建议早上8:30就到，先冲哈利波特禁忌之旅，排队最少！\n中午在三把扫帚餐厅吃顿“魔法餐”🍺\n下午看花车巡游，晚上灯光秀也不能错过💡\n\n标签： #北京环球影城 #环球影城攻略 #北京拍照 #北京打卡 #周末出游 #环球影城拍照", likes: "18,500", collects: "6,800", comments: "620", shares: "2,300" },
+            { id: 3, title: "👣北京周末这样玩！本地人推荐的一日游路线📍", author: "胡同里的小王", avatar: "https://randomuser.me/api/portraits/men/3.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%203_1.png", body: "周末来北京，推荐这条本地人私藏路线👇\n上午先去天安门广场看升旗，超震撼！\n然后步行到前门大街，吃一碗老北京豆汁儿配焦圈🥣\n中午去雍和宫祈福，附近有很多好吃的素食餐厅🥬\n下午在五道营胡同逛逛，很多小众咖啡馆和手作店☕️\n晚上去簋街吃小龙虾，氛围感拉满！\n\n标签： #北京周末 #北京本地人推荐 #天安门 #雍和宫 #北京胡同 #北京美食 #北京生活", likes: "9,600", collects: "2,100", comments: "380", shares: "950" },
+            { id: 4, title: "🌷北京春天赏花必去！颐和园+西堤桃花美哭了💕", author: "园林小公主", avatar: "https://randomuser.me/api/portraits/women/4.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%204_1.jpg", body: "春天的颐和园真的太美了！\n西堤的桃花开得正盛，湖边拍照超有氛围感🌸\n建议从东宫门进，沿着昆明湖走到西堤，一路都是风景📸\n可以带点零食在湖边野餐，感受春天的惬意～\n下午去附近的圆明园走走，人少景美，很适合散步🚶‍♀️\n\n标签： #北京春天 #颐和园 #赏花 #北京拍照 #春日限定 #北京旅游 #周末好去处", likes: "15,200", collects: "4,500", comments: "520", shares: "1,800" },
+            { id: 5, title: "☕️北京胡同漫游指南！5家宝藏小店+拍照机位📷", author: "文艺拾光人", avatar: "https://randomuser.me/api/portraits/women/5.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%205_1.jpg", body: "周末不想去景点人挤人，就来胡同里慢慢逛吧～\n推荐五道营胡同，每家小店都超有格调✨\n第一家：藏在胡同里的手冲咖啡馆，豆子超香☕️\n第二家：vintage 古着店，淘到超多宝藏👗\n第三家：胡同里的文艺书店，拍照超出片📖\n第四家：手工皮具工作室，可以自己做小物件👜\n第五家：胡同天台酒吧，傍晚看日落超浪漫🌇\n\n标签： #北京胡同 #北京探店 #小众咖啡 #周末去哪儿 #北京拍照 #北京生活 #胡同漫游", likes: "11,500", collects: "3,500", comments: "420", shares: "980" },
+            { id: 6, title: "🌸武汉春天必去！武大樱花+东湖赏花一日游攻略🌿", author: "樱花季特派员", avatar: "https://randomuser.me/api/portraits/women/6.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", body: "春天来武汉，一定要去武大看樱花！🌸\n老斋舍前的樱花大道，配上百年建筑，拍照绝美📸\n建议早上8点前到，避开人流，光线也刚刚好～\n下午去东湖樱园，漫山遍野的樱花，像走进了粉色童话世界💕\n\n标签： #武汉旅游 #武大樱花 #东湖 #樱花季 #武汉拍照", likes: "16,200", collects: "5,100", comments: "580", shares: "2,100" },
+            { id: 7, title: "🏯黄鹤楼+长江大桥！武汉经典一日游路线📷", author: "江城导游小陈", avatar: "https://randomuser.me/api/portraits/men/7.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", body: "来武汉，黄鹤楼是一定要去的！\n登楼远眺，长江大桥尽收眼底，视野超开阔🌉\n晚上去户部巷吃小吃，吹着江风超舒服～\n\n标签： #黄鹤楼 #长江大桥 #武汉美食 #武汉打卡", likes: "13,500", collects: "3,800", comments: "420", shares: "1,500" },
+            { id: 8, title: "🚴‍♀️武汉周末这样玩！本地人私藏的东湖骑行路线📍", author: "东湖骑行家", avatar: "https://randomuser.me/api/portraits/men/8.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%203_1.JPG", body: "周末来东湖绿道骑行吧～\n从梨园广场出发，沿湖中道骑到磨山，全程约10公里🚲\n\n标签： #武汉周末 #东湖绿道 #武汉骑行 #本地人推荐", likes: "10,800", collects: "2,900", comments: "390", shares: "1,100" },
+            { id: 9, title: "🌺武汉春天赏花天花板！东湖樱园美到失语💕", author: "赏花摄影师", avatar: "https://randomuser.me/api/portraits/women/9.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%204_1.png", body: "东湖樱园的春天，真的美哭了！\n上万株樱花同时绽放，像走进了粉色的云海🌸\n\n标签： #武汉春天 #东湖樱园 #赏花 #武汉拍照", likes: "17,500", collects: "6,200", comments: "650", shares: "2,400" },
+            { id: 10, title: "☕️武汉小众咖啡地图！5家藏在老社区的宝藏店📷", author: "江城探店喵", avatar: "https://randomuser.me/api/portraits/women/10.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%205_1.png", body: "藏在老社区里的咖啡馆，才是真正的宝藏✨\n黎黄陂路上的百年老洋房，复古感拉满🏛️\n\n标签： #武汉探店 #小众咖啡 #黎黄陂路 #咖啡地图", likes: "11,600", collects: "2,700", comments: "340", shares: "950" },
+            { id: 11, title: "🍵成都春天这样过！人民公园喝茶+鹤鸣茶社攻略🌿", author: "蓉城小茶友", avatar: "https://randomuser.me/api/portraits/women/11.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%201_1.JPG", body: "春天来成都，一定要去人民公园喝茶！\n鹤鸣茶社百年老字号，找个竹椅坐下，点杯盖碗茶🍵\n\n标签： #成都旅游 #人民公园 #盖碗茶 #成都生活", likes: "14,200", collects: "3,600", comments: "480", shares: "1,400" },
+            { id: 12, title: "🐼成都周末必去！大熊猫基地+都江堰一日游攻略📍", author: "滚滚守护者", avatar: "https://randomuser.me/api/portraits/women/12.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%202_1.jpeg", body: "来成都，怎么能不看大熊猫！\n建议早上8点前到大熊猫基地，熊猫最活跃🐼\n\n标签： #成都周末 #大熊猫 #都江堰 #成都旅游", likes: "19,800", collects: "7,200", comments: "780", shares: "2,800" },
+            { id: 13, title: "🔥成都火锅地图！本地人私藏的5家宝藏火锅店🌶️", author: "火锅星人", avatar: "https://randomuser.me/api/portraits/men/13.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%203_1.JPG", body: "来成都，火锅是必须要吃的！\n藏在巷子里的老火锅，牛油锅底香到上头🔥\n\n标签： #成都火锅 #成都美食 #本地人推荐", likes: "21,500", collects: "8,600", comments: "920", shares: "3,200" },
+            { id: 14, title: "📸成都拍照圣地！5个超出片的小众打卡点✨", author: "视觉成都", avatar: "https://randomuser.me/api/portraits/women/14.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%204_1.JPG", body: "东郊记忆，工业风+涂鸦墙，随手拍都是大片🏭\n玉林路的小酒馆，文艺氛围拉满🍷\n\n标签： #成都拍照 #小众打卡地 #成都探店", likes: "15,800", collects: "4,900", comments: "530", shares: "1,900" },
+            { id: 15, title: "🌼成都春天必去！油菜花海+周边游一日游攻略💛", author: "赏花爱好者", avatar: "https://randomuser.me/api/portraits/women/15.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%205_1.JPG", body: "成都的春天，是油菜花给的！\n金黄的油菜花一望无际，拍照超治愈📸\n\n标签： #成都春天 #油菜花 #成都周边游 #春日限定", likes: "13,900", collects: "3,800", comments: "460", shares: "1,500" },
+            { id: 16, title: "🛶漓江竹筏与阳朔山水｜桂林三日安排🌄", author: "山水旅人", avatar: "https://randomuser.me/api/portraits/men/16.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guilin%201_1.JPG", body: "推荐从杨堤到兴坪这一段，二十元人民币背景都在这里🛶\n\n标签： #桂林 #漓江 #阳朔 #广西旅游", likes: "8,200", collects: "2,100", comments: "390", shares: "860" },
+            { id: 17, title: "🥧澳门一日｜大三巴与葡式蛋挞", author: "美食挖掘机", avatar: "https://randomuser.me/api/portraits/women/17.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Macau%201_1.JPG", body: "来澳门，大三巴是一定要去的。安德鲁蛋挞值得等🥧\n\n标签： #澳门 #大三巴 #葡式蛋挞 #澳门美食", likes: "6,500", collects: "1,500", comments: "280", shares: "620" },
+            { id: 18, title: "🌿伊犁的春天，是杏花与草原", author: "自驾阿强", avatar: "https://randomuser.me/api/portraits/men/18.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Xinjiang%201_1.JPG", body: "四月的伊犁，杏花开了，草原也绿了。自驾最爽！🏔️\n\n标签： #新疆 #伊犁 #赛里木湖 #新疆旅行", likes: "10,200", collects: "3,100", comments: "540", shares: "1,300" }
+        ];
+
+        let displayPosts = [...posts];
+        function shuffle(arr) {
+            for (let i = arr.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [arr[i], arr[j]] = [arr[j], arr[i]];
+            }
+        }
+        shuffle(displayPosts);
+
+        const grid = document.getElementById('grid');
+        function render(data) {
+            grid.innerHTML = '';
+            data.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <img class="note-image" src="${post.image}" loading="lazy" onerror="this.src='https://via.placeholder.com/300x400?text=Image+Load+Error'">
+                    <div class="note-info">
+                        <div class="note-title">${post.title}</div>
+                        <div class="note-footer">
+                            <div class="author-box"><img class="author-img" src="${post.avatar}"><span>${post.author}</span></div>
+                            <div>❤️ ${post.likes}</div>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => openModal(post);
+                grid.appendChild(card);
+            });
+        }
+
+        document.getElementById('searchInput').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = posts.filter(p => p.title.toLowerCase().includes(val) || p.body.toLowerCase().includes(val));
+            render(filtered);
+        };
+
+        const modal = document.getElementById('modal');
+        function openModal(post) {
+            document.getElementById('modalSingleImage').src = post.image;
+            document.getElementById('modalAvatar').src = post.avatar;
+            document.getElementById('modalAuthorName').innerText = post.author;
+            document.getElementById('modalTitle').innerText = post.title;
+            document.getElementById('modalBody').innerText = post.body;
+            document.getElementById('likeText').innerText = post.likes;
+            document.getElementById('collectText').innerText = post.collects;
+            document.getElementById('commentText').innerText = post.comments;
+            document.getElementById('shareText').innerText = post.shares;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        document.getElementById('closeModal').onclick = () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        render(displayPosts);
+    </script>
+</body>
+</html>
