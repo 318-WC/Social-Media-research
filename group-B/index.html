@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>城市生活指南 - 发现精彩世界</title>
+    <style>
+        :root {
+            --primary-color: #00b96b;
+            --bg-color: #ffffff;
+            --secondary-bg: #f5f5f5;
+            --text-main: #222222;
+            --text-muted: #666666;
+            --border-color: #eeeeee;
+        }
+
+        body { 
+            margin: 0; 
+            background-color: var(--bg-color); 
+            font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            display: flex;
+        }
+
+        /* --- 电脑端侧边栏 --- */
+        .side-bar {
+            width: 240px; height: 100vh; border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; left: 0; top: 0; background: #fff; z-index: 100;
+        }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary-color); margin-bottom: 40px; }
+        .nav-group { display: flex; flex-direction: column; gap: 8px; }
+        .nav-item { 
+            padding: 12px 16px; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; gap: 12px; color: var(--text-main);
+            transition: background 0.2s;
+        }
+        .nav-item:hover { background: var(--secondary-bg); }
+        .nav-item.active { background: var(--secondary-bg); color: var(--primary-color); font-weight: 600; }
+
+        /* --- 主内容区 --- */
+        .main-wrapper { flex: 1; margin-left: 240px; padding: 0 40px; }
+        .header { 
+            height: 72px; display: flex; align-items: center; justify-content: space-between;
+            position: sticky; top: 0; background: #fff; z-index: 50; max-width: 1200px; margin: 0 auto;
+        }
+        .search-container { background: var(--secondary-bg); border-radius: 20px; padding: 8px 20px; width: 40%; display: flex; align-items: center; }
+        .search-input { border: none; background: transparent; width: 100%; outline: none; font-size: 14px; flex: 1; }
+
+        /* --- 瀑布流布局 --- */
+        .feed-container { 
+            max-width: 1200px; margin: 20px auto; 
+            column-count: 4; column-gap: 16px; 
+        }
+
+        .note-card {
+            break-inside: avoid; margin-bottom: 16px; background: #fff; 
+            border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);
+            transition: transform 0.3s; cursor: pointer;
+        }
+        .note-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .note-image { width: 100%; display: block; }
+        .note-info { padding: 12px; }
+        .note-title { font-size: 14px; font-weight: 600; line-height: 1.5; margin-bottom: 8px; color: var(--text-main); }
+        .note-author { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+        .author-avatar { width: 20px; height: 20px; border-radius: 50%; }
+
+        @media (max-width: 768px) {
+            .side-bar { display: none; }
+            .main-wrapper { margin-left: 0; padding: 0 12px; }
+            .search-container { width: 100%; }
+            .feed-container { column-count: 2; column-gap: 8px; }
+            .mobile-nav { display: flex !important; }
+        }
+
+        .mobile-nav {
+            display: none; position: fixed; bottom: 0; left: 0; width: 100%;
+            height: 60px; background: #fff; border-top: 1px solid var(--border-color);
+            justify-content: space-around; align-items: center; z-index: 200;
+        }
+        .nav-btn-m { text-align: center; font-size: 10px; color: var(--text-muted); }
+        .nav-btn-m span { font-size: 20px; display: block; }
+
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 900px; height: 85vh; border-radius: 16px;
+            display: flex; overflow: hidden; position: relative;
+        }
+        .modal-left { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; }
+        .modal-left img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-right { flex: 1; padding: 32px; overflow-y: auto; display: flex; flex-direction: column; }
+        .close-modal { position: absolute; top: 16px; right: 16px; cursor: pointer; font-size: 24px; color: #999; z-index: 10; }
+
+        @media (max-width: 768px) {
+            .modal-content { width: 100%; height: 100vh; border-radius: 0; flex-direction: column; }
+            .modal-left { flex: none; height: 45%; }
+            .modal-right { padding: 20px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="side-bar">
+        <div class="logo">城市指南</div>
+        <div class="nav-group">
+            <div class="nav-item active"><span>🏠</span> 发现</div>
+            <div class="nav-item"><span>🔍</span> 搜索</div>
+            <div class="nav-item"><span>➕</span> 发布</div>
+            <div class="nav-item"><span>👤</span> 我的</div>
+        </div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="header">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索目的地、攻略...">
+            </div>
+        </div>
+        <div class="feed-container" id="grid"></div>
+    </div>
+
+    <div class="mobile-nav">
+        <div class="nav-btn-m"><span>🏠</span>首页</div>
+        <div class="nav-btn-m"><span>🔍</span>发现</div>
+        <div class="nav-btn-m" style="background:var(--primary-color); color:#fff; width:45px; height:32px; border-radius:8px; line-height:32px;">+</div>
+        <div class="nav-btn-m"><span>💬</span>消息</div>
+        <div class="nav-btn-m"><span>👤</span>我</div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">×</span>
+            <div class="modal-left">
+                <img id="modalImg" src="">
+            </div>
+            <div class="modal-right">
+                <div class="note-author" style="margin-bottom: 20px;">
+                    <img id="modalAvatar" class="author-avatar" style="width:32px; height:32px;">
+                    <span id="modalAuthorName" style="font-weight:600; font-size:15px;"></span>
+                </div>
+                <h2 id="modalTitle" style="font-size: 20px; margin: 0 0 16px 0;"></h2>
+                <div id="modalBody" style="font-size: 15px; line-height: 1.7; color: #333; white-space: pre-line;"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const posts = [
+            { id: 1, title: "北京胡同游：周末探店与漫步路线", author: "京城探店达人", avatar: "https://randomuser.me/api/portraits/women/1.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%205_1.jpg", body: "周末建议前往胡同区域进行轻松漫步。可选择五道营胡同作为主要活动地点。沿途体验咖啡馆与特色小店。下午适合拍照或简单休息。整体节奏轻松，适合慢生活体验。\n\n#北京 #胡同 #探店 #周末出游 #城市生活 #拍照打卡" },
+            { id: 2, title: "武汉赏花游：东湖樱园路线推荐", author: "樱花特派员", avatar: "https://randomuser.me/api/portraits/women/6.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%204_1.png", body: "春季建议上午前往东湖樱园赏花。园区内樱花集中，适合拍照。可安排步行路线进行完整游览。下午可前往周边区域继续休闲活动。整体环境安静，适合慢节奏出游。\n\n#武汉 #樱园 #赏花 #春日出游 #拍照打卡 #休闲旅行" },
+            { id: 3, title: "成都拍照游：小众打卡路线推荐", author: "巴蜀生活家", avatar: "https://randomuser.me/api/portraits/women/9.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%204_1.JPG", body: "建议选择市区内小众地点进行拍照活动。可前往创意园区或文化空间参观。沿途适合进行人物与环境拍摄。下午可在安静场所进行短暂休息。整体体验以拍照与城市探索为主。\n\n#成都 #拍照打卡 #小众地点 #周末出游 #城市探索 #休闲旅行" },
+            { id: 4, title: "桂林三日游：漓江阳朔山水路线", author: "山水旅行家", avatar: "https://randomuser.me/api/portraits/men/13.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guilin%201_1.JPG", body: "建议春季前往桂林进行三日行程安排。第一天游览漓江精华段并体验竹筏项目。第二天前往阳朔区域进行骑行或休闲活动。期间可品尝当地特色如啤酒鱼。整体行程以自然景观为主，适合放松旅行。\n\n#桂林 #漓江 #阳朔 #自然风景 #春日出游 #旅游路线" },
+            { id: 5, title: "澳门一日游：大三巴美食路线", author: "澳门食神", avatar: "https://randomuser.me/api/portraits/women/14.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Macau%201_1.JPG", body: "建议上午前往大三巴区域进行游览。可在周边街区步行探索历史建筑。中午安排葡式餐厅体验当地饮食。下午前往商业街区继续游览。整体行程紧凑，适合短途旅行。\n\n#澳门 #大三巴 #美食 #城市旅行 #周末出游 #旅游路线" },
+            { id: 6, title: "新疆春日游：伊犁草原风景路线", author: "西域探险者", avatar: "https://randomuser.me/api/portraits/men/15.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Xinjiang%201_1.JPG", body: "春季建议前往伊犁地区进行自然观光。可游览草原与湖泊等典型景观。白天适合拍照与短途活动。途中可体验当地特色饮食。整体行程以自然景观为主，节奏较为舒缓。\n\n#新疆 #伊犁 #草原 #自然风景 #春日出游 #旅游推荐" },
+            { id: 7, title: "洛阳周末游：老君山汉服路线", author: "古都爱好者", avatar: "https://randomuser.me/api/portraits/women/16.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Luoyang%202_1.JPG", body: "周末建议安排老君山两日游行程。第一天前往山顶区域进行观景活动。第二天返回市区体验汉服拍照。中午品尝当地特色小吃。整体行程结合自然与文化体验。\n\n#洛阳 #老君山 #汉服 #周末出游 #自然风景 #旅游路线" },
+            { id: 8, title: "婺源周末游：婺女洲夜游路线", author: "江南旅行者", avatar: "https://randomuser.me/api/portraits/men/17.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuyuan%202_1.JPG", body: "周末建议前往婺女洲体验夜间活动。傍晚进入景区进行基础游览。夜间可观看灯光秀等表演项目。第二天可安排周边景点继续游览。整体行程适合短途休闲出行。\n\n#婺源 #婺女洲 #夜游 #周末出游 #文化体验 #旅游推荐" }
+        ];
+
+        let currentDisplayPosts = [];
+
+        function shufflePosts(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        const grid = document.getElementById('grid');
+
+        function render(data) {
+            grid.innerHTML = '';
+            data.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <img class="note-image" src="${post.image}" loading="lazy">
+                    <div class="note-info">
+                        <div class="note-title">${post.title}</div>
+                        <div class="note-author">
+                            <img class="author-avatar" src="${post.avatar}">
+                            <span>${post.author}</span>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => openModal(post);
+                grid.appendChild(card);
+            });
+        }
+
+        const modal = document.getElementById('modal');
+        function openModal(post) {
+            document.getElementById('modalImg').src = post.image;
+            document.getElementById('modalAvatar').src = post.avatar;
+            document.getElementById('modalAuthorName').innerText = post.author;
+            document.getElementById('modalTitle').innerText = post.title;
+            document.getElementById('modalBody').innerText = post.body;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        document.getElementById('closeModal').onclick = () => {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        };
+
+        document.getElementById('searchInput').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = currentDisplayPosts.filter(p => 
+                p.title.toLowerCase().includes(val) || 
+                p.body.toLowerCase().includes(val)
+            );
+            render(filtered);
+        };
+
+        // 初始化
+        currentDisplayPosts = shufflePosts(posts);
+        render(currentDisplayPosts);
+    </script>
+</body>
+</html>
