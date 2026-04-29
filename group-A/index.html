@@ -150,81 +150,80 @@
     </div>
 
     <script>
-        // 简体中文贴文数据
-       const posts = [
-    { 
-        id: 1, 
-        title: "北京春日游：故宫胡同与美食路线", 
-        author: "京城探店达人", 
-        avatar: "https://randomuser.me/api/portraits/women/1.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", 
-        body: "春天来北京，建议上午前往故宫游览，光线适合拍照。从午门进入一路参观至神武门，沿途景观丰富。中午可在附近胡同品尝炸酱面等传统小吃。下午前往什刹海区域散步，体验老北京生活氛围。整体行程节奏适中，适合周末一日游安排。\n\n#北京 #北京旅游 #故宫 #胡同 #春日出游 #美食推荐" 
-    },
-    { 
-        id: 2, 
-        title: "北京一日游：环球影城游玩路线", 
-        author: "旅行少女小张", 
-        avatar: "https://randomuser.me/api/portraits/women/2.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", 
-        body: "建议上午提前到达环球影城，减少排队时间。优先体验哈利波特主题区及热门项目。中午可在园区餐厅用餐，补充体力。下午观看巡游活动并选择适合拍照的区域。整体行程安排紧凑，适合周末娱乐出行。\n\n#北京 #环球影城 #主题乐园 #拍照打卡 #周末出游 #旅游攻略" 
-    },
-    { 
-        id: 3, 
-        title: "北京周末游：天安门雍和宫路线", 
-        author: "胡同里的小王", 
-        avatar: "https://randomuser.me/api/portraits/men/3.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%203_1.png", 
-        body: "周末建议早上前往天安门广场参观与拍照。随后步行至前门区域体验传统街区氛围。中午可品尝本地特色小吃作为午餐选择。下午前往雍和宫参观并在周边简单休闲。整体路线覆盖经典与文化景点，节奏均衡。\n\n#北京 #周末出游 #天安门 #雍和宫 #城市体验 #旅游路线" 
-    },
-    { 
-        id: 4, 
-        title: "武汉春日游：樱花东湖赏花路线", 
-        author: "樱花特派员", 
-        avatar: "https://randomuser.me/api/portraits/women/6.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", 
-        body: "春季建议上午前往武汉大学观赏樱花。校园环境适合拍照与短时间游览。中午可在周边品尝本地特色小吃。下午前往东湖绿道赏花与散步。整体行程轻松，适合春季一日游。\n\n#武汉 #樱花 #东湖 #春日出游 #拍照打卡 #旅游推荐" 
-    },
-    { 
-        id: 5, 
-        title: "武汉一日游：黄鹤楼长江路线", 
-        author: "江城导游小陈", 
-        avatar: "https://randomuser.me/api/portraits/men/7.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", 
-        body: "建议下午前往黄鹤楼进行登高游览。可同时观赏长江及周边城市景观。傍晚时段适合拍照与观景。晚上可前往附近区域品尝小吃。整体行程兼具文化与城市景观体验。\n\n#武汉 #黄鹤楼 #长江 #城市景观 #周末出游 #旅游路线" 
-    },
-    { 
-        id: 6, 
-        title: "武汉周末游：东湖骑行路线推荐", 
-        author: "运动旅行家", 
-        avatar: "https://randomuser.me/api/portraits/men/8.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%203_1.JPG", 
-        body: "周末建议前往东湖绿道进行骑行活动。从起点出发沿湖进行，路线清晰。途中可选择休息点进行短暂停留。傍晚适合在湖边观景与放缩。整体体验以自然与运动结合为主。\n\n#武汉 #东湖 #骑行 #周末出游 #户外活动 #城市休闲" 
-    },
-    { 
-        id: 7, 
-        title: "成都春日游：公园喝茶休闲路线", 
-        author: "巴蜀生活家", 
-        avatar: "https://randomuser.me/api/portraits/women/9.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%204_1.png", 
-        body: "春季建议前往人民公园进行休闲活动。可在茶社体验本地饮茶文化。中午安排周边餐饮作为用餐选择。下午前往历史街区进行简单游览。整体节奏舒适，适合放松型出行。\n\n#成都 #人民公园 #喝茶 #春日出游 #城市生活 #休闲旅行" 
-    },
-    { 
-        id: 8, 
-        title: "成都一日游：熊猫都江堰路线", 
-        author: "熊猫守护者", 
-        avatar: "https://randomuser.me/api/portraits/men/10.jpg", 
-        image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%205_1.png", 
-        body: "建议上午前往熊猫基地进行参观。可观察熊猫活动并进行拍照记录。中午安排简单用餐补充体力。下午前往都江堰景区进行游览。整体行程结合自然与文化景观体验。\n\n#成都 #熊猫基地 #都江堰 #周末出游 #自然景观 #旅游路线" 
-    }
-];
-
-        // 随机排序函数 (Fisher-Yates Shuffle)
-        function shufflePosts(array) {
-            for (let i = array.length - 1; i > 0; i--) {
-                const j = Math.floor(Math.random() * (i + 1));
-                [array[i], array[j]] = [array[j], array[i]];
+        const posts = [
+            { 
+                id: 1, 
+                title: "北京春日游：故宫胡同与美食路线", 
+                author: "京城探店达人", 
+                avatar: "https://randomuser.me/api/portraits/women/1.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", 
+                body: "春天来北京，建议上午前往故宫游览，光线适合拍照。从午门进入一路参观至神武门，沿途景观丰富。中午可在附近胡同品尝炸酱面等传统小吃。下午前往什刹海区域散步，体验老北京生活氛围。整体行程节奏适中，适合周末一日游安排。\n\n#北京 #北京旅游 #故宫 #胡同 #春日出游 #美食推荐" 
+            },
+            { 
+                id: 2, 
+                title: "北京一日游：环球影城游玩路线", 
+                author: "旅行少女小张", 
+                avatar: "https://randomuser.me/api/portraits/women/2.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", 
+                body: "建议上午提前到达环球影城，减少排队时间。优先体验哈利波特主题区及热门项目。中午可在园区餐厅用餐，补充体力。下午观看巡游活动并选择适合拍照的区域。整体行程安排紧凑，适合周末娱乐出行。\n\n#北京 #环球影城 #主题乐园 #拍照打卡 #周末出游 #旅游攻略" 
+            },
+            { 
+                id: 3, 
+                title: "北京周末游：天安门雍和宫路线", 
+                author: "胡同里的小王", 
+                avatar: "https://randomuser.me/api/portraits/men/3.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%203_1.png", 
+                body: "周末建议早上前往天安门广场参观与拍照。随后步行至前门区域体验传统街区氛围。中午可品尝本地特色小吃作为午餐选择。下午前往雍和宫参观并在周边简单休闲。整体路线覆盖经典与文化景点，节奏均衡。\n\n#北京 #周末出游 #天安门 #雍和宫 #城市体验 #旅游路线" 
+            },
+            { 
+                id: 4, 
+                title: "武汉春日游：樱花东湖赏花路线", 
+                author: "樱花特派员", 
+                avatar: "https://randomuser.me/api/portraits/women/6.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", 
+                body: "春季建议上午前往武汉大学观赏樱花。校园环境适合拍照与短时间游览。中午可在周边品尝本地特色小吃。下午前往东湖绿道赏花与散步。整体行程轻松，适合春季一日游。\n\n#武汉 #樱花 #东湖 #春日出游 #拍照打打 #旅游推荐" 
+            },
+            { 
+                id: 5, 
+                title: "武汉一日游：黄鹤楼长江路线", 
+                author: "江城导游小陈", 
+                avatar: "https://randomuser.me/api/portraits/men/7.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", 
+                body: "建议下午前往黄鹤楼进行登高游览。可同時观赏长江及周边城市景观。傍晚时段适合拍照与观景。晚上可前往附近区域品尝小吃。整体行程兼具文化与城市景观体验。\n\n#武汉 #黄鹤楼 #长江 #城市景观 #周末出游 #旅游路线" 
+            },
+            { 
+                id: 6, 
+                title: "武汉周末游：东湖骑行路线推荐", 
+                author: "运动旅行家", 
+                avatar: "https://randomuser.me/api/portraits/men/8.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%203_1.JPG", 
+                body: "周末建议前往东湖绿道进行骑行活动。从起点出发沿湖进行，路线清晰。途中可选择休息点进行短暂停留。傍晚适合在湖边观景与放鬆。整体体验以自然与运动结合为主。\n\n#武汉 #东湖 #骑行 #周末出游 #户外活动 #城市休闲" 
+            },
+            { 
+                id: 7, 
+                title: "成都春日游：公园喝茶休闲路线", 
+                author: "巴蜀生活家", 
+                avatar: "https://randomuser.me/api/portraits/women/9.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%201_1.JPG", 
+                body: "春季建议前往人民公园进行休闲活动。可在茶社体验本地饮茶文化。中午安排周边餐饮作为用餐选择。下午前往历史街区进行简单游览。整体节奏舒适，适合放松型出行。\n\n#成都 #人民公园 #喝茶 #春日出游 #城市生活 #休闲旅行" 
+            },
+            { 
+                id: 8, 
+                title: "成都一日游：熊猫都江堰路线", 
+                author: "熊猫守护者", 
+                avatar: "https://randomuser.me/api/portraits/men/10.jpg", 
+                image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%202_1.jpeg", 
+                body: "建议上午前往熊猫基地进行参观。可观察熊猫活动并进行拍照记录。中午安排简单用餐补充体力。下午前往都江堰景区进行游览。整体行程结合自然与文化景观体验。\n\n#成都 #熊猫基地 #都江堰 #周末出游 #自然景观 #旅游路线" 
             }
-            return array;
+        ];
+
+        function shufflePosts(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
         }
 
         const grid = document.getElementById('grid');
@@ -265,15 +264,15 @@
             document.body.style.overflow = 'auto';
         };
 
-        // 搜索功能
+        // 搜尋功能
         document.getElementById('searchInput').oninput = (e) => {
             const val = e.target.value.toLowerCase();
             const filtered = posts.filter(p => p.title.toLowerCase().includes(val) || p.body.toLowerCase().includes(val));
             render(filtered);
         };
 
-        // 页面初始化：先随机排序，再渲染
-        const randomizedPosts = shufflePosts([...posts]);
+        // 初始化
+        const randomizedPosts = shufflePosts(posts);
         render(randomizedPosts);
     </script>
 </body>
