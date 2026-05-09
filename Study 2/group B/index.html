@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>城市生活指南 - 发现精彩世界</title>
+    <style>
+        :root {
+            --primary-color: #00b96b;
+            --bg-color: #ffffff;
+            --secondary-bg: #f5f5f5;
+            --text-main: #222222;
+            --text-muted: #666666;
+            --border-color: #eeeeee;
+        }
+
+        body { 
+            margin: 0; background-color: var(--bg-color); 
+            font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+            display: flex;
+        }
+
+        /* --- 侧边栏 --- */
+        .side-bar {
+            width: 240px; height: 100vh; border-right: 1px solid var(--border-color);
+            display: flex; flex-direction: column; padding: 24px;
+            position: fixed; left: 0; top: 0; background: #fff; z-index: 100;
+        }
+        .logo { font-size: 22px; font-weight: bold; color: var(--primary-color); margin-bottom: 40px; }
+        .nav-item { 
+            padding: 12px 16px; border-radius: 8px; cursor: pointer; 
+            display: flex; align-items: center; gap: 12px; color: var(--text-main);
+            margin-bottom: 8px; transition: 0.2s;
+        }
+        .nav-item:hover { background: var(--secondary-bg); }
+        .nav-item.active { background: var(--secondary-bg); color: var(--primary-color); font-weight: 600; }
+
+        /* --- 主内容区 --- */
+        .main-wrapper { flex: 1; margin-left: 240px; padding: 0 40px; }
+        .header { 
+            height: 72px; display: flex; align-items: center; justify-content: center;
+            position: sticky; top: 0; background: #fff; z-index: 50;
+        }
+        .search-container { background: var(--secondary-bg); border-radius: 20px; padding: 8px 20px; width: 50%; }
+        .search-input { border: none; background: transparent; width: 100%; outline: none; font-size: 14px; }
+
+        /* --- 瀑布流布局 --- */
+        .feed-container { 
+            max-width: 1200px; margin: 20px auto; 
+            column-count: 4; column-gap: 16px; 
+        }
+
+        .note-card {
+            break-inside: avoid; margin-bottom: 16px; background: #fff; 
+            border-radius: 12px; overflow: hidden; border: 1px solid var(--border-color);
+            cursor: pointer; transition: 0.3s;
+        }
+        .note-card:hover { transform: translateY(-4px); box-shadow: 0 10px 20px rgba(0,0,0,0.05); }
+        .note-image { width: 100%; display: block; }
+        .note-info { padding: 12px; }
+        .note-title { font-size: 14px; font-weight: 600; line-height: 1.4; margin-bottom: 8px; color: var(--text-main); }
+        .note-author { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
+        .author-avatar { width: 20px; height: 20px; border-radius: 50%; }
+
+        @media (max-width: 1024px) { .feed-container { column-count: 3; } }
+        @media (max-width: 768px) {
+            .side-bar { display: none; }
+            .main-wrapper { margin-left: 0; padding: 0 12px; }
+            .feed-container { column-count: 2; column-gap: 8px; }
+        }
+
+        /* 弹窗样式 */
+        .modal-overlay {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.7); display: none; justify-content: center; align-items: center; z-index: 1000;
+        }
+        .modal-content {
+            background: #fff; width: 90%; max-width: 900px; height: 85vh; border-radius: 16px;
+            display: flex; overflow: hidden; position: relative;
+        }
+        .modal-left { flex: 1.2; background: #000; display: flex; align-items: center; justify-content: center; }
+        .modal-left img { max-width: 100%; max-height: 100%; object-fit: contain; }
+        .modal-right { flex: 1; padding: 30px; overflow-y: auto; }
+        .close-btn { position: absolute; top: 15px; right: 20px; font-size: 28px; cursor: pointer; color: #999; z-index: 10; }
+    </style>
+</head>
+<body>
+
+    <div class="side-bar">
+        <div class="logo">城市指南</div>
+        <div class="nav-item active">🏠 发现</div>
+        <div class="nav-item">🔍 搜索</div>
+        <div class="nav-item">➕ 发布</div>
+        <div class="nav-item">👤 我的</div>
+    </div>
+
+    <div class="main-wrapper">
+        <div class="header">
+            <div class="search-container">
+                <input type="text" class="search-input" id="searchInput" placeholder="搜索目的地、攻略...">
+            </div>
+        </div>
+        <div class="feed-container" id="grid"></div>
+    </div>
+
+    <div class="modal-overlay" id="modal">
+        <div class="modal-content">
+            <span class="close-btn" onclick="closeModal()">×</span>
+            <div class="modal-left"><img id="modalImg" src=""></div>
+            <div class="modal-right">
+                <div class="note-author" style="margin-bottom:15px;">
+                    <img id="modalAvatar" class="author-avatar" style="width:30px; height:30px;">
+                    <span id="modalAuthor" style="font-weight:bold;"></span>
+                </div>
+                <h2 id="modalTitle"></h2>
+                <p id="modalBody" style="white-space: pre-line; line-height: 1.7; color: #333; font-size: 15px;"></p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const posts = [
+            { id: 1, title: "北京春日游：故宫胡同与美食路线", author: "京城探店达人", avatar: "https://randomuser.me/api/portraits/men/1.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", body: "春天来北京，建议上午前往故宫游览，光线适合拍照。从午门进入一路参观至神武门，沿途景观丰富。中午可在附近胡同品尝炸酱面等传统小吃。下午前往什刹海区域散步，体验老北京生活氛围。整体行程节奏适中，适合周末一日游安排。\n\n#北京 #北京旅游 #故宫 #胡同 #春日出游 #美食推荐" },
+            { id: 2, title: "北京一日游：环球影城游玩路线", author: "旅行少女小张", avatar: "https://randomuser.me/api/portraits/men/2.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", body: "建议上午提前到达环球影城，减少排队时间。优先体验哈利波特主题区及热门项目。中午可在园区餐厅用餐，补充体力。下午观看巡游活动并选择适合拍照的区域。整体行程安排紧凑，适合周末娱乐出行。\n\n#北京 #环球影城 #主题乐园 #拍照打卡 #周末出游 #旅游攻略" },
+            { id: 3, title: "武汉春日游：樱花东湖赏花路线", author: "樱花特派员", avatar: "https://randomuser.me/api/portraits/men/3.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", body: "春季建议上午前往武汉大学观赏樱花。校园环境适合拍照与短时间游览。中午可在周边品尝本地特色小吃。下午前往东湖绿道赏花与散步。整体行程轻松，适合春季一日游。\n\n#武汉 #樱花 #东湖 #春日出游 #拍照打卡 #旅游推荐" },
+            { id: 4, title: "武汉一日游：黄鹤楼长江路线", author: "江城导游小陈", avatar: "https://randomuser.me/api/portraits/men/4.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", body: "建议下午前往黄鹤楼进行登高游览。可同时观赏长江及周边城市景观。傍晚时段适合拍照与观景。晚上可前往附近区域品尝小吃。整体行程兼具文化与城市景观体验。\n\n#武汉 #黄鹤楼 #长江 #城市景观 #周末出游 #旅游路线" },
+            { id: 5, title: "成都春日游：公园喝茶休闲路线", author: "巴蜀生活家", avatar: "https://randomuser.me/api/portraits/men/5.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%201_1.JPG", body: "春季建议前往人民公园进行休闲活动。可在茶社体验本地饮茶文化。中午安排周边餐饮作为用餐选择。下午前往历史街区进行简单游览。整体节奏舒适，适合放松型出行。\n\n#成都 #人民公园 #喝茶 #春日出游 #城市生活 #休闲旅行" },
+            { id: 6, title: "成都一日游：熊猫都江堰路线", author: "熊猫守护者", avatar: "https://randomuser.me/api/portraits/men/6.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%202_1.jpeg", body: "建议上午前往熊猫基地进行参观。可观察熊猫活动并进行拍照记录。中午安排简单用餐补充体力。下午前往都江堰景区进行游览。整体行程结合自然与文化景观体验。\n\n#成都 #熊猫基地 #都江堰 #周末出游 #自然景观 #旅游路线" },
+            { id: 7, title: "洛阳春日游：龙门石窟赏花路线", author: "洛城寻花客", avatar: "https://randomuser.me/api/portraits/men/7.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Luoyang%201_1.png", body: "春季建议前往洛阳进行赏花与文化游览。\n上午可参观龙门石窟，了解石刻艺术。\n中午在市区安排当地特色餐饮。\n下午前往洛邑古城进行拍照与散步。\n整体节奏平缓，适合春季休闲出行。\n\n#洛阳 #龙门石窟 #牡丹 #春日出游 #文化旅游 #城市体验" },
+            { id: 8, title: "洛阳周末游：老君山汉服路线", author: "古都爱好者", avatar: "https://randomuser.me/api/portraits/men/8.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Luoyang%202_1.JPG", body: "周末建议安排老君山两日游行程。第一天前往山顶区域进行观景活动。第二天返回市区体验汉服拍照。中午品尝当地特色小吃。整体行程结合自然与文化体验。\n\n#洛阳 #老君山 #汉服 #周末出游 #自然风景 #旅游路线" },
+            { id: 9, title: "婺源春日游：油菜花篁岭路线", author: "田园采风家", avatar: "https://randomuser.me/api/portraits/men/9.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuyuan%201_1.JPG", body: "春季建议前往婺源观赏油菜花景观。\n可优先选择篁岭区域进行游览。\n白天适合拍照与短途步行活动。\n中午可体验当地农家餐饮。\n整体行程以自然景观为主，节奏轻松。\n\n#婺源 #油菜花 #篁岭 #春日出游 #自然风景 #江西旅游" },
+            { id: 10, title: "婺源周末游：婺女洲夜游路线", author: "江南旅行者", avatar: "https://randomuser.me/api/portraits/men/10.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuyuan%202_1.JPG", body: "周末建议前往婺女洲体验夜间活动。傍晚进入景区进行基础游览。夜间可观看灯光秀等表演项目。第二天可安排周边景点继续游览。整体行程适合短途休闲出行。\n\n#婺源 #婺女洲 #夜游 #周末出游 #文化体验 #旅游推荐" },
+            { id: 11, title: "贵阳美食游：本地小吃路线推荐", author: "筑城食客", avatar: "https://randomuser.me/api/portraits/men/11.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guiyang%201_1.JPG", body: "建议在市区安排美食探索行程。\n可优先选择本地人常去的餐厅。\n用餐过程中体验多种特色小吃。\n下午可在周边区域进行简单活动。\n整体体验以饮食文化为主要内容。\n\n#贵阳 #美食 #小吃 #探店 #城市生活 #旅游推荐" },
+            { id: 12, title: "贵阳周末游：花溪黔灵山路线", author: "林城漫步者", avatar: "https://randomuser.me/api/portraits/women/12.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guiyang%202_1.JPG", body: "周末建议前往花溪公园进行散步活动。\n中午可在周边品尝当地特色餐饮。\n下午前往黔灵山进行简单登山。\n游览过程中注意环境与安全。\n整体行程结合自然与城市休闲体验。\n\n#贵阳 #花溪 #黔灵山 #周末出游 #自然景观 #城市休闲" },
+            { id: 13, title: "万宁海边游：日月湾休闲路线", author: "浪迹逐海人", avatar: "https://randomuser.me/api/portraits/men/13.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wanning%201_1.JPG", body: "建议前往万宁日月湾进行海边活动。\n可选择冲浪或基础体验项目。\n白天适合在海滩进行拍照。\n下午可在咖啡馆休息放松。\n整体节奏轻松，适合度假型出行。\n\n#万宁 #日月湾 #海边 #冲浪 #度假旅行 #海南旅游" },
+            { id: 14, title: "万宁自驾游：石梅湾沿海路线", author: "环岛逐风手", avatar: "https://randomuser.me/api/portraits/women/14.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wanning%202_1.JPG", body: "建议安排沿海自驾行程进行游览。\n可从石梅湾出发前往神州半岛。\n途中可多次停留进行观景与拍照。\n中午安排海边餐厅用餐。\n整体行程以自然景观体验为主。\n\n#万宁 #石梅湾 #自驾游 #海岸线 #周末出游 #海南旅行" },
+            { id: 15, title: "桂林三日游：漓江阳朔山水路线", author: "山水旅行家", avatar: "https://randomuser.me/api/portraits/men/15.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guilin%201_1.JPG", body: "建议春季前往桂林进行三日行程安排。第一天游览漓江精华段并体验竹筏项目。第二天前往阳朔区域进行骑行或休闲活动。期间可品尝当地特色如啤酒鱼。整体行程以自然景观为主，适合放松旅行。\n\n#桂林 #漓江 #阳朔 #自然风景 #春日出游 #旅游路线" },
+            { id: 16, title: "澳门一日游：大三巴美食路线", author: "澳门食神", avatar: "https://randomuser.me/api/portraits/women/16.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Macau%201_1.JPG", body: "建议上午前往大三巴区域进行游览。可在周边街区步行探索历史建筑。中午安排葡式餐厅体验当地饮食。下午前往商业街区继续游览。整体行程紧凑，适合短途旅行。\n\n#澳门 #大三巴 #美食 #城市旅行 #周末出游 #旅游路线" },
+            { id: 17, title: "莫干山周末游：民宿休闲路线", author: "山居入梦人", avatar: "https://randomuser.me/api/portraits/men/17.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Moganshan%201_1.JPG", body: "周末建议前往莫干山进行短途出行。\n可选择民宿作为主要停留地点。\n白天安排周边村落或自然活动。\n下午适合在民宿环境中休息。\n整体行程以放松与休闲为主。\n\n#莫干山 #民宿 #周末出游 #周边游 #休闲旅行 #自然环境" },
+            { id: 18, title: "新疆春日游：伊犁草原风景路线", author: "西域探险者", avatar: "https://randomuser.me/api/portraits/men/18.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Xinjiang%201_1.JPG", body: "春季建议前往伊犁地区进行自然观光。可游览草原与湖泊等典型景观。白天适合拍照与短途活动。途中可体验当地特色饮食。整体行程以自然景观为主，节奏较为舒缓。\n\n#新疆 #伊犁 #草原 #自然风景 #春日出游 #旅游推荐" }
+        ];
+
+        // 随机排列函数 (Fisher-Yates Shuffle)
+        function shufflePosts(array) {
+            let shuffled = [...array];
+            for (let i = shuffled.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+            }
+            return shuffled;
+        }
+
+        function render(data) {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            data.forEach(post => {
+                const card = document.createElement('div');
+                card.className = 'note-card';
+                card.innerHTML = `
+                    <img class="note-image" src="${post.image}" loading="lazy">
+                    <div class="note-info">
+                        <div class="note-title">${post.title}</div>
+                        <div class="note-author">
+                            <img class="author-avatar" src="${post.avatar}">
+                            <span>${post.author}</span>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => openModal(post);
+                grid.appendChild(card);
+            });
+        }
+
+        const modal = document.getElementById('modal');
+        function openModal(post) {
+            document.getElementById('modalImg').src = post.image;
+            document.getElementById('modalAvatar').src = post.avatar;
+            document.getElementById('modalAuthor').innerText = post.author;
+            document.getElementById('modalTitle').innerText = post.title;
+            document.getElementById('modalBody').innerText = post.body;
+            modal.style.display = 'flex';
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            document.body.style.overflow = 'auto';
+        }
+
+        document.getElementById('searchInput').oninput = (e) => {
+            const val = e.target.value.toLowerCase();
+            const filtered = posts.filter(p => p.title.toLowerCase().includes(val) || p.body.toLowerCase().includes(val));
+            render(filtered);
+        };
+
+        // 页面加载时执行随机排列并渲染
+        const randomizedData = shufflePosts(posts);
+        render(randomizedData);
+    </script>
+</body>
+</html>
