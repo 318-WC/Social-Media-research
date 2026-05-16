@@ -12,7 +12,7 @@
             --text-main: #222222;
             --text-muted: #666666;
             --border-color: #eeeeee;
-            --notice-bg: #fff9db; /* 提示栏背景色（浅黄） */
+            --notice-bg: #fff9db; /* 提示栏背景色 */
             --notice-text: #856404; /* 提示栏文字色 */
         }
 
@@ -21,7 +21,7 @@
             background-color: var(--bg-color); 
             font-family: -apple-system, "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
             display: flex;
-            flex-direction: column;
+            flex-direction: column; /* 让提示栏与主容器垂直排列 */
         }
 
         /* --- 顶部提示栏 --- */
@@ -35,9 +35,10 @@
             width: 100%;
             position: sticky;
             top: 0;
-            z-index: 1000;
+            z-index: 1100; /* 确保在最上层 */
             border-bottom: 1px solid #ffeeba;
             box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+            box-sizing: border-box;
         }
 
         .app-container {
@@ -47,9 +48,14 @@
 
         /* --- 电脑端侧边栏 --- */
         .side-bar {
-            width: 240px; height: calc(100vh - 45px); border-right: 1px solid var(--border-color);
+            width: 240px; height: 100vh; border-right: 1px solid var(--border-color);
             display: flex; flex-direction: column; padding: 24px;
-            position: fixed; left: 0; top: 45px; background: #fff; z-index: 100;
+            position: fixed; left: 0; top: 0; background: #fff; z-index: 100;
+        }
+        /* 当有顶部提示栏时，调整侧边栏的 top 值防止重叠 */
+        .top-notice-bar ~ .app-container .side-bar {
+            top: 45px;
+            height: calc(100vh - 45px);
         }
         .logo { font-size: 22px; font-weight: bold; color: var(--primary-color); margin-bottom: 40px; }
         .nav-group { display: flex; flex-direction: column; gap: 8px; }
@@ -62,10 +68,14 @@
         .nav-item.active { background: var(--secondary-bg); color: var(--primary-color); font-weight: 600; }
 
         /* --- 主内容区 --- */
-        .main-wrapper { flex: 1; margin-left: 240px; padding: 0 40px; min-height: 100vh; }
+        .main-wrapper { flex: 1; margin-left: 240px; padding: 0 40px; }
         .header { 
             height: 72px; display: flex; align-items: center; justify-content: space-between;
-            background: #fff; max-width: 1200px; margin: 0 auto;
+            position: sticky; top: 0; background: #fff; z-index: 50; max-width: 1200px; margin: 0 auto;
+        }
+        /* 如果提示栏固定，header 的 sticky top 需往下移 */
+        .top-notice-bar ~ .app-container .header {
+            top: 45px;
         }
         .search-container { background: var(--secondary-bg); border-radius: 20px; padding: 8px 20px; width: 40%; display: flex; align-items: center; }
         .search-input { border: none; background: transparent; width: 100%; outline: none; font-size: 14px; flex: 1; }
@@ -88,12 +98,6 @@
         .note-author { display: flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-muted); }
         .author-avatar { width: 20px; height: 20px; border-radius: 50%; }
 
-        /* --- 底部提示 --- */
-        .feed-footer {
-            text-align: center; padding: 60px 0 120px; color: var(--text-muted);
-            clear: both;
-        }
-
         /* --- 响应式适配 (手机端) --- */
         @media (max-width: 768px) {
             .side-bar { display: none; }
@@ -101,6 +105,7 @@
             .search-container { width: 100%; }
             .feed-container { column-count: 2; column-gap: 8px; }
             .mobile-nav { display: flex !important; }
+            .top-notice-bar ~ .app-container .header { top: 45px; }
         }
 
         .mobile-nav {
@@ -111,7 +116,6 @@
         .nav-btn-m { text-align: center; font-size: 10px; color: var(--text-muted); }
         .nav-btn-m span { font-size: 20px; display: block; }
 
-        /* 弹窗样式 */
         .modal-overlay {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%;
             background: rgba(0,0,0,0.6); display: none; justify-content: center; align-items: center; z-index: 1000;
@@ -155,12 +159,7 @@
                     <input type="text" class="search-input" id="searchInput" placeholder="搜索目的地、攻略...">
                 </div>
             </div>
-            
             <div class="feed-container" id="grid"></div>
-
-            <div class="feed-footer">
-                <p>— 已显示全部内容 —</p>
-            </div>
         </div>
     </div>
 
@@ -190,27 +189,28 @@
     </div>
 
     <script>
-       const posts = [
-            { id: 1, title: "北京春日游：故宫胡同与美食路线", author: "京城探店达人", avatar: "https://randomuser.me/api/portraits/men/1.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", body: "春天来北京，建议上午前往故宫游览，光线适合拍照。从午门进入一路参观至神武门，沿途景观丰富。中午可在附近胡同品尝炸酱面等传统小吃。下午前往什刹海区域散步，体验老北京生活氛围。\n\n#北京 #北京旅游 #故宫 #胡同 #春日出游 #美食推荐" },
-            { id: 2, title: "北京一日游：环球影城游玩路线", author: "旅行少女小张", avatar: "https://randomuser.me/api/portraits/men/2.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", body: "建议上午提前到达环球影城，减少排队时间。优先体验哈利波特主题区及热门项目。中午可在园区餐厅用餐，补充体力。下午观看巡游活动并选择适合拍照的区域。\n\n#北京 #环球影城 #主题乐园 #拍照打卡 #周末出游 #旅游攻略" },
-            { id: 3, title: "北京周末游：天安门雍和宫路线", author: "胡同里的小王", avatar: "https://randomuser.me/api/portraits/men/3.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%203_1.png", body: "周末建议早上前往天安门广场参观与拍照。随后步行至前门区域体验传统街区氛围。中午可品尝本地特色小吃作为午餐选择。下午前往雍和宫参观并在周边简单休闲。\n\n#北京 #周末出游 #天安门 #雍和宫 #城市体验 #旅游路线" },
-            { id: 4, title: "北京春日赏花：颐和园游览路线", author: "园林小行家", avatar: "https://randomuser.me/api/portraits/men/4.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%204_1.jpg", body: "春季建议上午前往颐和园进行赏花活动。从东宫门进入，沿昆明湖步行观景。西堤区域适合拍照与短暂停留。下午可延伸至附近公园继续休闲散步。\n\n#北京 #颐和园 #赏花 #春日出游 #拍照打卡 #休闲旅行" },
-            { id: 5, title: "北京胡同游：周末探店与漫步路线", author: "胡同观察者", avatar: "https://randomuser.me/api/portraits/men/5.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%205_1.jpg", body: "周末建议前往胡同区域进行轻松漫步。可选择五道营胡同作为主要活动地点。沿途体验咖啡馆与特色小店。下午适合拍照或简单休息。\n\n#北京 #胡同 #探店 #周末出游 #城市生活 #拍照打卡" },
-            { id: 6, title: "武汉春日游：樱花东湖赏花路线", author: "樱花特派员", avatar: "https://randomuser.me/api/portraits/men/6.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", body: "春季建议上午前往武汉大学观赏樱花。校园环境适合拍照与短时间游览。中午可在周边品尝本地特色小吃。下午前往东湖绿道赏花与散步。\n\n#武汉 #樱花 #东湖 #春日出游 #拍照打卡 #旅游推荐" },
-            { id: 7, title: "武汉一日游：黄鹤楼长江路线", author: "江城导游小陈", avatar: "https://randomuser.me/api/portraits/men/7.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", body: "建议下午前往黄鹤楼进行登高游览。可同时观赏长江及周边城市景观。傍晚时段适合拍照与观景。晚上可前往附近区域品尝小吃。\n\n#武汉 #黄鹤楼 #长江 #城市景观 #周末出游 #旅游路线" },
-            { id: 8, title: "武汉周末游：东湖骑行路线推荐", author: "运动旅行家", avatar: "https://randomuser.me/api/portraits/men/8.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%203_1.JPG", body: "周末建议前往东湖绿道进行骑行活动。从起点出发沿湖进行，路线清晰。途中可选择休息点进行短暂停留。傍晚适合在湖边观景与放松。\n\n#武汉 #东湖 #骑行 #周末出游 #户外活动 #城市休闲" },
-            { id: 9, title: "武汉赏花游：东湖樱园路线推荐", author: "春日追花友", avatar: "https://randomuser.me/api/portraits/men/9.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%204_1.png", body: "春季建议上午前往东湖樱园赏花。园区内樱花集中，适合拍照。可安排步行路线进行完整游览。下午可前往周边区域继续休闲活动。\n\n#武汉 #樱园 #赏花 #春日出游 #拍照打打 #休闲旅行" },
-            { id: 10, title: "武汉探店游：周末咖啡路线推荐", author: "咖啡瘾君子", avatar: "https://randomuser.me/api/portraits/men/10.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%205_1.png", body: "周末建议选择社区区域进行探店活动。可前往特色街区集中体验咖啡馆。沿途适合拍照与短时间停留。下午可选择安静环境进行休息。\n\n#武汉 #咖啡 #探店 #周末出游 #城市生活 #拍照打卡" },
-            { id: 11, title: "成都春日游：公园喝茶休闲路线", author: "巴蜀生活家", avatar: "https://randomuser.me/api/portraits/men/11.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%201_1.JPG", body: "春季建议前往人民公园进行休闲活动。可在茶社体验本地饮茶文化。中午安排周边餐饮作为用餐选择。下午前往历史街区进行简单游览。\n\n#成都 #人民公园 #喝茶 #春日出游 #城市生活 #休闲旅行" },
-            { id: 12, title: "成都一日游：熊猫都江堰路线", author: "熊猫守护者", avatar: "https://randomuser.me/api/portraits/men/12.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%202_1.jpeg", body: "建议上午前往熊猫基地进行参观。可观察熊猫活动并进行拍照记录。中午安排简单用餐补充体力。下午前往都江堰景区进行游览。\n\n#成都 #熊猫基地 #都江堰 #周末出游 #自然景观 #旅游路线" },
-            { id: 13, title: "成都美食游：火锅探店路线推荐", author: "火锅达人阿强", avatar: "https://randomuser.me/api/portraits/men/13.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%203_1.JPG", body: "建议选择市区内火锅店进行美食体验。可优先考虑本地人常去的餐厅。用餐过程中体验多种食材搭配。餐后可在周边区域进行简单活动。\n\n#成都 #火锅 #美食 #探店 #城市生活 #旅游推荐" },
-            { id: 14, title: "成都拍照游：小众打卡路线推荐", author: "摄影爱好者", avatar: "https://randomuser.me/api/portraits/men/14.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%204_1.JPG", body: "建议选择市区内小众地点进行拍照活动。可前往创意园区或文化空间参观。沿途适合进行人物与环境拍摄。下午可在安静场所进行短暂休息。\n\n#成都 #拍照打卡 #小众地点 #周末出游 #城市探索 #休闲旅行" },
-            { id: 15, title: "成都春日游：油菜花周边路线", author: "田野漫步者", avatar: "https://randomuser.me/api/portraits/men/15.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%205_1.JPG", body: "春季建议前往成都周边进行短途出游。可选择油菜花景观区域进行观赏。白天适合拍照与户外活动。下午可前往古镇区域进行游览。\n\n#成都 #油菜花 #周边游 #春日出游 #自然风景 #旅游路线" },
-            { id: 16, title: "桂林三日游：漓江阳朔山水路线", author: "山水旅人", avatar: "https://randomuser.me/api/portraits/men/16.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guilin%201_1.JPG", body: "建议春季前往桂林进行三日行程安排。第一天游览漓江精华段并体验竹筏项目。第二天前往阳朔区域进行骑行或休闲活动。期间可品尝当地特色如啤酒鱼。\n\n#桂林 #漓江 #阳朔 #自然风景 #春日出游 #旅游路线" },
-            { id: 17, title: "澳门一日游：大三巴美食路线", author: "美食探索家", avatar: "https://randomuser.me/api/portraits/men/17.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Macau%201_1.JPG", body: "建议上午前往大三巴区域進行游览。可在周边街区步行探索历史建筑后。中午安排葡式餐厅体验当地饮食。下午前往商业街区继续游览。\n\n#澳门 #大三巴 #美食 #城市旅行 #周末出游 #旅游路线" },
-            { id: 18, title: "新疆春日游：伊犁草原风景路线", author: "大漠行者", avatar: "https://randomuser.me/api/portraits/men/18.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Xinjiang%201_1.JPG", body: "春季建议前往伊犁地区进行自然观光。可游览草原与湖泊等典型景观。白天适合拍照与短途活动。途中可体验当地特色饮食。\n\n#新疆 #伊犁 #草原 #自然风景 #春日出游 #旅游推荐" }
+        const posts = [
+            { id: 1, title: "北京春日游：故宫胡同与美食路线", author: "京城探店达人", avatar: "https://randomuser.me/api/portraits/men/1.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Beijing%201_1.jpg", body: "春天来北京，建议上午前往故宫游览，光线适合拍照。从午门进入一路参观至神武门，沿途景观丰富。中午可在附近胡同品尝炸酱面等传统小吃。下午前往什刹海区域散步，体验老北京生活氛围。整体行程节奏适中，适合周末一日游安排。\n\n#北京 #北京旅游 #故宫 #胡同 #春日出游 #美食推荐" },
+            { id: 2, title: "北京一日游：环球影城游玩路线", author: "旅行少女小张", avatar: "https://randomuser.me/api/portraits/men/2.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/BeIjing%202_1.jpg", body: "建议上午提前到达环球影城，减少排队时间。优先体验哈利波特主题区及热门项目。中午可在园区餐厅用餐，补充体力。下午观看巡游活动并选择适合拍照的区域。整体行程安排紧凑，适合周末娱乐出行。\n\n#北京 #环球影城 #主题乐园 #拍照打卡 #周末出游 #旅游攻略" },
+            { id: 3, title: "武汉春日游：樱花东湖赏花路线", author: "樱花特派员", avatar: "https://randomuser.me/api/portraits/men/3.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%201_1.jpeg", body: "春季建议上午前往武汉大学观赏樱花。校园环境适合拍照与短时间游览。中午可在周边品尝本地特色小吃. 下午前往东湖绿道赏花与散步。整体行程轻松，适合春季一日游。\n\n#武汉 #樱花 #东湖 #春日出游 #拍照打卡 #旅游推荐" },
+            { id: 4, title: "武汉一日游：黄鹤楼长江路线", author: "江城导游小陈", avatar: "https://randomuser.me/api/portraits/men/4.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuhan%202_1.JPG", body: "建议下午前往黄鹤楼进行登高游览。可同时观赏长江及周边城市景观。傍晚时段适合拍照与观景。晚上可前往附近区域品尝小吃。整体行程兼具文化与城市景观体验。\n\n#武汉 #黄鹤楼 #长江 #城市景观 #周末出游 #旅游路线" },
+            { id: 5, title: "成都春日游：公园喝茶休闲路线", author: "巴蜀生活家", avatar: "https://randomuser.me/api/portraits/men/5.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%201_1.JPG", body: "春季建议前往人民公园进行休闲 activity。可在茶社体验本地饮茶文化。中午安排周边餐饮作为用餐选择。下午前往历史街区进行简单游览。整体节奏舒适，适合放松型出行。\n\n#成都 #人民公园 #喝茶 #春日出游 #城市生活 #休闲旅行" },
+            { id: 6, title: "成都一日游：熊猫都江堰路线", author: "熊猫守护者", avatar: "https://randomuser.me/api/portraits/men/6.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Chengdu%202_1.jpeg", body: "建议上午前往熊猫基地进行参观。可观察熊猫活动并进行拍照记录。中午安排简单用餐补充体力。下午前往都江堰景区进行游览。整体行程结合自然与文化景观体验。\n\n#成都 #熊猫基地 #都江堰 #周末出游 #自然景观 #旅游路线" },
+            { id: 7, title: "洛阳春日游：龙门石窟赏花路线", author: "洛城寻花客", avatar: "https://randomuser.me/api/portraits/men/7.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Luoyang%201_1.png", body: "春季建议前往洛阳进行赏花与文化游览。\n上午可参观龙门石窟，了解石刻艺术。\n中午在市区安排当地特色餐饮。\n下午前往洛邑古城进行拍照与散步。\n整体节奏平缓，适合春季休闲出行。\n\n#洛阳 #龙门石窟 #牡丹 #春日出游 #文化旅游 #城市体验" },
+            { id: 8, title: "洛阳周末游：老君山汉服路线", author: "古都爱好者", avatar: "https://randomuser.me/api/portraits/men/8.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Luoyang%202_2%20.JPG", body: "周末建议安排老君山两日游行程。第一天前往山顶区域进行观景活动。第二天返回市区体验汉服拍照。中午品尝当地特色小吃。整体行程结合自然与文化体验。\n\n#洛阳 #老君山 #汉服 #周末出游 #自然风景 #旅游路线" },
+            { id: 9, title: "婺源春日游：油菜花篁岭路线", author: "田园采风家", avatar: "https://randomuser.me/api/portraits/men/9.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuyuan%201_1.JPG", body: "春季建议前往婺源观赏油菜花景观。\n可优先选择篁岭区域进行游览。\n白天适合拍照与短途步行活动。\n中午可体验当地农家餐饮。\n整体行程以自然景观为主，节奏轻松。\n\n#婺源 #油菜花 #篁岭 #春日出游 #自然风景 #江西旅游" },
+            { id: 10, title: "婺源周末游：婺女洲夜游路线", author: "江南旅行者", avatar: "https://randomuser.me/api/portraits/men/10.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wuyuan%202_1.JPG", body: "周末建议前往婺女洲体验夜间 activity。傍晚进入景区进行基础游览。夜间可观看灯光秀等表演项目。第二天可安排周边景点继续游览。整体行程适合短途休闲出行。\n\n#婺源 #婺女洲 #夜游 #周末出游 #文化体验 #旅游推荐" },
+            { id: 11, title: "贵阳美食游：本地小吃路线推荐", author: "筑城食客", avatar: "https://randomuser.me/api/portraits/men/11.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guiyang%201_1.JPG", body: "建议在市区安排美食探索行程。\n可优先选择本地人常去的餐厅。\n用餐过程中体验多种特色小吃。\n下午可在周边区域进行简单活动。\n整体体验以饮食文化为主要内容。\n\n#贵阳 #美食 #小吃 #探店 #城市生活 #旅游推荐" },
+            { id: 12, title: "贵阳周末游：花溪黔灵山路线", author: "林城漫步者", avatar: "https://randomuser.me/api/portraits/women/12.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guiyang%202_1.JPG", body: "周末建议前往花溪公园进行散步活动。\n中午可在周边品尝当地特色餐饮。\n下午前往黔灵山进行简单登山。\n游览过程中注意环境与安全。\n整体行程结合自然与城市休闲体验。\n\n#贵阳 #花溪 #黔灵山 #周末出游 #自然景观 #城市休闲" },
+            { id: 13, title: "万宁海边游：日月湾休闲路线", author: "浪迹逐海人", avatar: "https://randomuser.me/api/portraits/men/13.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wanning%201_1.JPG", body: "建议前往万宁日月湾进行海边活动。\n可选择冲浪或基础体验项目。\n白天适合在海滩进行拍照。\n下午可在咖啡馆休息放松。\n整体节奏轻松，适合度假型出行。\n\n#万宁 #日月湾 #海边 #冲浪 #度假旅行 #海南旅游" },
+            { id: 14, title: "万宁自驾游：石梅湾沿海路线", author: "环岛逐风手", avatar: "https://randomuser.me/api/portraits/women/14.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Wanning%202_1.JPG", body: "建议安排沿海自驾行程进行游览。\n可从石梅湾出发前往神州半岛。\n途中可多次停留进行观景与拍照。\n中午安排海边餐厅用餐。\n整体行程以自然景观体验为主。\n\n#万宁 #石梅湾 #自驾游 #海岸线 #周末出游 #海南旅行" },
+            { id: 15, title: "桂林三日游：漓江阳朔山水路线", author: "山水旅行家", avatar: "https://randomuser.me/api/portraits/men/15.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Guilin%201_1.JPG", body: "建议春季前往桂林进行三日行程安排。第一天游览漓江精华段并体验竹筏项目。第二天前往阳朔区域进行骑行或休闲活动。期间可品尝当地特色如啤酒鱼。整体行程以自然景观为主，适合放松旅行。\n\n#桂林 #漓江 #阳朔 #自然风景 #春日出游 #旅游路线" },
+            { id: 16, title: "澳门一日游：大三巴美食路线", author: "澳门食神", avatar: "https://randomuser.me/api/portraits/women/16.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Macau%201_1.JPG", body: "建议上午前往大三巴区域进行游览。可在周边街区步行探索历史建筑。中午安排葡式餐厅体验当地饮食。下午前往商业街区继续游览。整体行程紧凑，适合短途旅行。\n\n#澳门 #大三巴 #美食 #城市旅行 #周末出游 #旅游路线" },
+            { id: 17, title: "莫干山周末游：民宿休闲路线", author: "山居入梦人", avatar: "https://randomuser.me/api/portraits/men/17.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Moganshan%201_1.JPG", body: "周末建议前往莫干山进行短途出行。\n可选择民宿作为主要停留地点。\n白天安排周边村落 or 自然活动。\n下午适合在民宿环境中休息。\n整体行程以放松与休闲为主。\n\n#莫干山 #民宿 #周末出游 #周边游 #休闲旅行 #自然环境" },
+            { id: 18, title: "新疆春日游：伊犁草原风景路线", author: "西域探险者", avatar: "https://randomuser.me/api/portraits/men/18.jpg", image: "https://raw.githubusercontent.com/318-WC/Social-Media-research/refs/heads/main/Xinjiang%201_1.JPG", body: "春季建议前往伊犁地区进行自然观光。可游览草原与湖泊等典型景观。白天适合拍照与短途活动。途中可体验当地特色饮食。整体行程以自然景观为主，节奏较为舒缓。\n\n#新疆 #伊犁 #草原 #自然风景 #春日出游 #旅游推荐" }
         ];
 
+        // 随机排列函数 (Fisher-Yates Shuffle)
         function shufflePosts(array) {
             let shuffled = [...array];
             for (let i = shuffled.length - 1; i > 0; i--) {
@@ -265,7 +265,7 @@
             render(filtered);
         };
 
-        // 初始化
+        // 初始化：随机排列并渲染
         const randomizedPosts = shufflePosts(posts);
         render(randomizedPosts);
     </script>
